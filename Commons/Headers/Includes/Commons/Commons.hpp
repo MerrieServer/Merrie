@@ -139,7 +139,7 @@ namespace Merrie {
      * No side-effects expression should be specified as condition since it may never be evaluated if the assertions are disabled
      */
     #ifdef M_ASSERTIONS_ENABLED
-    #   define M_ASSERT(condition, message) do { if (!(condition)) M_FAIL(message); } while(0)
+    #   define M_ASSERT(condition, message) do { if (!(condition)) Merrie::M_FAIL(message); } while(0)
     #else
     #   define M_ASSERT(condition, message) do {} while(0)
     #endif

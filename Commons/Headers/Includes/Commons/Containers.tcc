@@ -8,7 +8,7 @@
 namespace Merrie {
 
     template<typename K, typename V>
-    std::optional<V> FindInMap(const std::map<K, V>& map, const K& key) {
+    inline std::optional<V> FindInMap(const std::map<K, V>& map, const K& key) {
         const auto& iterator = map.find(key);
 
         return iterator == map.end()
@@ -16,10 +16,14 @@ namespace Merrie {
                : std::make_optional(iterator->second);
     }
 
-    template<typename V>
-    bool VectorContains(const std::vector<V>& vector, const V& value)
-    {
-        return std::find(begin(vector), end(vector), value) != end(vector);
+    template<typename C, typename V>
+    inline bool Contains(const C& container, const V& value) {
+        return std::find(begin(container), end(container), value) != end(container);
+    }
+
+    template<typename C, typename Predicate>
+    inline void RemoveIf(C& container, Predicate predicate) {
+        container.erase(std::remove_if(begin(container), end(container), predicate), end(container));
     }
 }
 

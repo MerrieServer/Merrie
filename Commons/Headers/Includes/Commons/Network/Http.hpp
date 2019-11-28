@@ -2,6 +2,7 @@
 #define MERRIE_COMMONS_HEADERS_INCLUDES_COMMONS_NETWORK_HTTP_HPP
 
 #include "../Commons.hpp"
+#include "../Time.hpp"
 #include "NetworkServer.hpp"
 
 #include <boost/beast/core.hpp>
@@ -60,17 +61,22 @@ namespace Merrie {
         /**
          * Should KeepAlive be enabled.
          */
-        bool AllowKeepAlive;
+        bool AllowKeepAlive{};
+
+        /**
+         * General timeout for requestes in seconds.
+         */
+        uint16_t RequestTimeout {};
 
         /**
          * Timeout for the keep alive in seconds.
          */
-        uint16_t KeepAliveTimeout;
+        uint16_t KeepAliveTimeout{};
 
         /**
          * KeepAlive max - indicates the maximum number of requests that can be sent on this connection before closing it.
          */
-        uint16_t KeepAliveMax;
+        uint16_t KeepAliveMax{};
     };
 
     /**
@@ -90,19 +96,22 @@ namespace Merrie {
             HttpConnection(boost::asio::io_context& ioContext, HttpServer* server);
 
             /**
-             * TODO
+             * Gets the last request that this connection received.
              */
             [[nodiscard]] http::request<boost::beast::http::string_body>& GetRequest() noexcept;
 
             /**
-            * TODO
-            */
+             * Gets the cached response, it can be send using SendResponse()
+             */
             [[nodiscard]] http::response<boost::beast::http::string_body>& GetResponse() noexcept;
 
             /**
-            * TODO
-            */
+             * Sends the cached response (the one returned by GetResponse()) to the client
+             */
             void SendResponse();
+
+        public: // Overriden functions
+            bool IsValid() override;
 
         protected: // Friend methods
             friend class HttpServer;
@@ -110,6 +119,12 @@ namespace Merrie {
             void ReadData(std::shared_ptr<NetworkConnection> connectionOwnership);
 
         private: // Private methods
+            void SetTimeout();
+
+        private: // Private fields
+            bool m_keepAlive = false;
+            bool m_invalidated = false;
+            DefaultClock::time_point m_timeout;
             HttpServer* m_server;
             boost::beast::flat_static_buffer<8192> m_buffer;
             http::request<http::string_body> m_request{};

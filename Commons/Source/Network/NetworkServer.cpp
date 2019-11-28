@@ -1,5 +1,6 @@
 #include <Commons/Network/NetworkServer.hpp>
 
+#include <Commons/Containers.hpp>
 #include <utility>
 
 namespace Merrie {
@@ -85,9 +86,23 @@ namespace Merrie {
             return;
         }
 
-        M_LOG_TRACE_THIS("Connection: " << connection->GetSocket().remote_endpoint());
+        M_LOG_TRACE_THIS("New connection has connected: " << connection->GetSocket().remote_endpoint());
 
         std::scoped_lock lock(m_connectionsMutex);
+        RemoveIf(m_connections, [this](const std::shared_ptr<NetworkConnection>& connection) {
+            if (connection->IsValid()) {
+                return false;
+            }
+
+            if (connection->GetSocket().is_open()) {
+                boost::system::error_code ignored;
+                connection->GetSocket().close(ignored);
+            }
+
+            M_LOG_TRACE_THIS("Connection has been cleaned up: " << connection->GetSocket().remote_endpoint());
+            return true;
+        });
+
         m_connections.emplace_back(connection);
         ReadData(std::move(connection));
     }

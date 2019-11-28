@@ -157,6 +157,7 @@ namespace Merrie {
     }
 
     HttpConnection::HttpConnection(boost::asio::io_context& ioContext, HttpServer* server) : NetworkConnection(ioContext), m_server(server) {
+        SetTimeout();
     }
 
     void HttpConnection::ReadData(std::shared_ptr<NetworkConnection> connectionOwnership) {
@@ -166,9 +167,12 @@ namespace Merrie {
         http::async_read(GetSocket(), m_buffer, m_request, [this, connectionOwnership = std::move(connectionOwnership)](boost::beast::error_code ec, std::size_t) mutable {
             if (ec) {
                 // todo: handle error
+                m_invalidated = true;
                 return;
             }
 
+            m_keepAlive = m_server->m_settings.AllowKeepAlive && m_request.keep_alive();
+            SetTimeout();
             m_server->HandleRequest(std::static_pointer_cast<HttpConnection>(connectionOwnership));
         });
     }
@@ -182,6 +186,9 @@ namespace Merrie {
     }
 
     void HttpConnection::SendResponse() {
+        if (!IsValid())
+            return;
+
         std::shared_ptr<NetworkConnection> connectionOwnership = shared_from_this();
 
         // basic headers
@@ -189,20 +196,28 @@ namespace Merrie {
         m_response.set(http::field::content_length, m_response.body().size());
 
         // keep alive
-        m_response.keep_alive(m_server->GetHttpSettings().AllowKeepAlive && m_request.keep_alive());
+        m_response.keep_alive(m_keepAlive);
         if (m_response.keep_alive()) {
             m_response.set(http::field::connection, "keep-alive");
             m_response.set(http::field::keep_alive, m_server->m_keepAliveHeader);
         }
 
-        // todo: deadline?
         http::async_write(GetSocket(), m_response, [this, connectionOwnership = std::move(connectionOwnership)](boost::beast::error_code error, std::size_t) mutable {
-            if (!m_response.keep_alive() && IsValid()) {
-                GetSocket().shutdown(tcp::socket::shutdown_send, error);
+            if (error || !m_keepAlive) {
+                m_invalidated = true;
                 return;
             }
 
+            SetTimeout();
             ReadData(std::move(connectionOwnership));
         });
+    }
+
+    bool HttpConnection::IsValid() {
+        return NetworkConnection::IsValid() && !m_invalidated && !IsPast(m_timeout);
+    }
+
+    void HttpConnection::SetTimeout() {
+        m_timeout = PointInFuture<std::chrono::seconds>(m_keepAlive ? m_server->m_settings.KeepAliveTimeout : m_server->m_settings.RequestTimeout);
     }
 }

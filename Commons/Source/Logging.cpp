@@ -29,7 +29,7 @@ namespace Merrie {
 
     namespace {
         /**
-         * String representations of severity values for sinks supproting ANSII escape codes.
+         * String representations of severity values for sinks supporting ANSII escape codes.
          */
         const boost::string_view g_severityValues[7] = {
                 "  \033[36mTRACE\033[0m",
@@ -42,7 +42,7 @@ namespace Merrie {
         };
 
         /**
-        * String representations of severity values for sinks NOT supproting ANSII escape codes.
+        * String representations of severity values for sinks NOT supporting ANSII escape codes.
         */
         const boost::string_view g_rawSeverityValues[7] = {
                 "  TRACE",
@@ -88,13 +88,21 @@ namespace Merrie {
 
         /**
          * Mode of a filter.
-         * Stdout - only log messge levels with severity lower than Warning.
-         * Stderr - only log messge levels with severity greater or equal to Warning.
-         * Stdout - log all messages.
          */
         enum class Mode {
+                /**
+                 * Only log messages levels with severity lower than Warning.
+                 */
                 Stdout,
+
+                /**
+                 * Only log messages levels with severity greater or equal to Warning.
+                 */
                 Stderr,
+
+                /**
+                 * Log all messages.
+                 */
                 All
         };
 

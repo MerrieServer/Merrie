@@ -6,6 +6,7 @@ add_executable(Merrie_Commons_Test
         Crypto/TestDigest.cpp
         Network/TestHttp.cpp
         TestCommons.cpp
+        TestContainers.cpp
         TestTicker.cpp
         TestTime.cpp
 )

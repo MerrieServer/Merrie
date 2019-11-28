@@ -197,7 +197,7 @@ namespace Merrie {
             static void UpdateFilters(std::vector<std::string> filters);
 
             /**
-             * Gets the list of the filters used for filetring logging messages.
+             * Gets the list of the filters used for filtering logging messages.
              */
             static const std::vector<std::string>& GetFilters() noexcept;
 

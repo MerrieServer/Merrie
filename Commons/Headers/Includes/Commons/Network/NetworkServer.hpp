@@ -23,17 +23,17 @@ namespace Merrie {
         /**
          * IP to which the server should bind to.
          */
-        std::string BindIp;
+        std::string BindIp{};
 
         /**
          * Port to which the server should bind to.
          */
-        NetworkPort BindPort;
+        NetworkPort BindPort{};
 
         /**
          * How many worker threads should be spawned for this server.
          */
-        size_t WorkerThreadCount;
+        size_t WorkerThreadCount{};
     };
 
     /**
@@ -44,8 +44,15 @@ namespace Merrie {
             NON_COPYABLE(NetworkConnection);
             NON_MOVEABLE(NetworkConnection);
 
+            /**
+             * Creates a new NetworkConnection with the given ioContext that will be used for intiializing socket.
+             */
             explicit NetworkConnection(boost::asio::io_context& ioContext);
 
+        public: // Public methods
+            /**
+             * Determines whether or not the connection is still valid.
+             */
             virtual bool IsValid();
 
         protected: // Friend methods

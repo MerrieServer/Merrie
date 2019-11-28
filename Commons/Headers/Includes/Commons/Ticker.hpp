@@ -108,7 +108,7 @@ namespace Merrie {
              * Constructs a new task
              * @param mainThread the main thread of the ticker scheduling the task
              * @param action action to perform
-             * @param repeating wthether or not this task is repeating
+             * @param repeating whether or not this task is repeating
              */
             Task(std::thread::id mainThread, TaskAction action, bool repeating);
 
@@ -254,7 +254,7 @@ namespace Merrie {
             void EnsureInMainThread() const;
 
             /**
-             * Gets the TPS that the ticker is suppossed to keep.
+             * Gets the TPS that the ticker is supposed to keep.
              *
              * \return
              *     The TPS that the ticker is supposed to keep.

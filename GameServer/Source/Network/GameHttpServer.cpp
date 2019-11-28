@@ -22,8 +22,10 @@ namespace Merrie {
         connection->GetResponse().set(http::field::access_control_allow_methods, "POST, GET");
         connection->GetResponse().set(http::field::access_control_allow_origin, "http://classic.margonem.pl");
         connection->GetResponse().set(http::field::access_control_allow_headers, "*");
+        connection->GetResponse().set(http::field::access_control_max_age, "86400");
 
-        // OPTIONS requestes
+
+        // OPTIONS requests
         if (connection->GetRequest().method() == http::verb::options) {
             connection->GetResponse().set(http::field::allow, "POST, GET, OPTIONS");
             connection->GetResponse().result(http::status::ok);
@@ -69,7 +71,7 @@ namespace Merrie {
         #endif
 
         if (url.Path == "/engine") {
-            HandleEnginePacket(std::move(connection), std::move(url));
+            HandleEnginePacket(std::move(connection), url);
         } else {
             connection->GetResponse().body() = Http404Error;
             connection->GetResponse().result(http::status::not_found);
@@ -90,7 +92,7 @@ namespace Merrie {
 
         for (const std::shared_ptr<PacketHandlerData>& data : chain) {
             if (!data->ActionFilters.empty()) {
-                if (in.Action == "_" || !VectorContains(data->ActionFilters, in.Action)) {
+                if (in.Action == "_" || !Contains(data->ActionFilters, in.Action)) {
                     continue;
                 }
             }
