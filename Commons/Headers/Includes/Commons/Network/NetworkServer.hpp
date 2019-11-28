@@ -11,7 +11,7 @@ namespace Merrie {
     class NetworkWorker; // Forward declaration
 
     /**
-     * Shorter defintion for boost tcp class
+     * Shorter definition for boost tcp class
      */
     using tcp = boost::asio::ip::tcp;
 
@@ -66,7 +66,7 @@ namespace Merrie {
             NON_MOVEABLE(NetworkServer);
 
             /**
-             * Cretes a new NetworkServer with the given settings
+             * Creates a new NetworkServer with the given settings
              */
             explicit NetworkServer(NetworkServerSettings settings);
 
@@ -80,7 +80,7 @@ namespace Merrie {
             void Start();
 
             /**
-             * Blocks the current thread untill all of this server's network threads exit.
+             * Blocks the current thread until all of this server's network threads exit.
              */
             void Join();
 
