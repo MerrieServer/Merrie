@@ -1,4 +1,5 @@
 #include <Commons/Network/Http.hpp>
+#include <optional>
 
 namespace Merrie {
 
@@ -95,13 +96,11 @@ namespace Merrie {
 
                 pos = i + 1;
             } else if (character == '&') {
-                if (name.empty() && pos != i)
-                {
+                if (name.empty() && pos != i) {
                     std::string key;
                     _DecodeComponent(queryString.substr(pos, i - pos), key);
                     url.Parameters.try_emplace(std::move(key), "");
-                }
-                else if (!name.empty()) {
+                } else if (!name.empty()) {
                     auto[iterator, success] = url.Parameters.try_emplace(std::move(name), "");
 
                     if (!success)
@@ -148,48 +147,62 @@ namespace Merrie {
 
     void HttpServer::ReadData(std::shared_ptr<NetworkConnection> connection) {
         auto* httpConnection = static_cast<HttpConnection*>(connection.get()); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-        httpConnection->ReadData(std::move(connection));
+
+        if (httpConnection->IsValid())
+            httpConnection->ReadData(std::move(connection));
     }
 
     const HttpServerSettings& HttpServer::GetHttpSettings() const {
         return m_settings;
     }
 
-    void HttpServer::HandleRequestInternal(std::shared_ptr<HttpConnection> connection, http::request<http::string_body>& request, http::response<http::string_body>& response) {
-        HandleRequest(std::move(connection), request, response);
-
-        // basic headers
-        response.version(request.version());
-        response.set(http::field::content_length, response.body().size());
-
-        // keep alive
-        response.keep_alive(m_settings.AllowKeepAlive && request.keep_alive());
-        if (response.keep_alive()) {
-            response.set(http::field::connection, "keep-alive");
-            response.set(http::field::keep_alive, m_keepAliveHeader);
-        }
-    }
-
     HttpConnection::HttpConnection(boost::asio::io_context& ioContext, HttpServer* server) : NetworkConnection(ioContext), m_server(server) {
     }
 
     void HttpConnection::ReadData(std::shared_ptr<NetworkConnection> connectionOwnership) {
+        if (!IsValid())
+            return;
+
         http::async_read(GetSocket(), m_buffer, m_request, [this, connectionOwnership = std::move(connectionOwnership)](boost::beast::error_code ec, std::size_t) mutable {
             if (ec) {
                 // todo: handle error
                 return;
             }
 
-            m_server->HandleRequestInternal(shared_from_this(), m_request, m_response);
+            m_server->HandleRequest(std::static_pointer_cast<HttpConnection>(connectionOwnership));
+        });
+    }
 
-            // todo: deadline?
-            http::async_write(GetSocket(), m_response, [this, connectionOwnership = std::move(connectionOwnership)](boost::beast::error_code error, std::size_t) mutable {
-                if (!m_response.keep_alive() && GetSocket().is_open()) {
-                    GetSocket().shutdown(tcp::socket::shutdown_send, error);
-                }
+    http::request<boost::beast::http::string_body>& HttpConnection::GetRequest() noexcept {
+        return m_request;
+    }
 
-                ReadData(std::move(connectionOwnership));
-            });
+    http::response<boost::beast::http::string_body>& HttpConnection::GetResponse() noexcept {
+        return m_response;
+    }
+
+    void HttpConnection::SendResponse() {
+        std::shared_ptr<NetworkConnection> connectionOwnership = shared_from_this();
+
+        // basic headers
+        m_response.version(m_request.version());
+        m_response.set(http::field::content_length, m_response.body().size());
+
+        // keep alive
+        m_response.keep_alive(m_server->GetHttpSettings().AllowKeepAlive && m_request.keep_alive());
+        if (m_response.keep_alive()) {
+            m_response.set(http::field::connection, "keep-alive");
+            m_response.set(http::field::keep_alive, m_server->m_keepAliveHeader);
+        }
+
+        // todo: deadline?
+        http::async_write(GetSocket(), m_response, [this, connectionOwnership = std::move(connectionOwnership)](boost::beast::error_code error, std::size_t) mutable {
+            if (!m_response.keep_alive() && IsValid()) {
+                GetSocket().shutdown(tcp::socket::shutdown_send, error);
+                return;
+            }
+
+            ReadData(std::move(connectionOwnership));
         });
     }
 }

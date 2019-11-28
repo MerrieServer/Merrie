@@ -89,6 +89,21 @@ namespace Merrie {
              */
             HttpConnection(boost::asio::io_context& ioContext, HttpServer* server);
 
+            /**
+             * TODO
+             */
+            [[nodiscard]] http::request<boost::beast::http::string_body>& GetRequest() noexcept;
+
+            /**
+            * TODO
+            */
+            [[nodiscard]] http::response<boost::beast::http::string_body>& GetResponse() noexcept;
+
+            /**
+            * TODO
+            */
+            void SendResponse();
+
         protected: // Friend methods
             friend class HttpServer;
 
@@ -126,12 +141,10 @@ namespace Merrie {
 
             std::shared_ptr<NetworkConnection> CreateNetworkConnection(boost::asio::io_context& context) override;
 
-            virtual void HandleRequest(std::shared_ptr<HttpConnection> connection, http::request<http::string_body>& request, http::response<http::string_body>& response) = 0;
+            virtual void HandleRequest(std::shared_ptr<HttpConnection> connection) = 0;
 
         protected: // Friend methods
             friend class HttpConnection;
-
-            void HandleRequestInternal(std::shared_ptr<HttpConnection> connection, http::request<http::string_body>& request, http::response<http::string_body>& response);
 
         private: // Private fields
             const HttpServerSettings m_settings;

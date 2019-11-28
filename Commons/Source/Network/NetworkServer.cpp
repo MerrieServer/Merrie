@@ -11,13 +11,12 @@ namespace Merrie {
     }
 
     NetworkServer::~NetworkServer() {
-        m_work.reset();
-
-        // wait for the worker threads to shut down
+        Stop();
         Join();
     }
 
-    void NetworkServer::StartServer() {
+    void NetworkServer::Start() {
+        M_ASSERT(!m_running, "Already running");
         M_LOG_TRACE_THIS("Open & bind");
 
         m_acceptor.open(m_endpoint.protocol());
@@ -37,6 +36,7 @@ namespace Merrie {
             });
         }
 
+        m_running = true;
         StartAccept();
     }
 
@@ -48,6 +48,15 @@ namespace Merrie {
         }
     }
 
+    void NetworkServer::Stop() {
+        m_work.reset();
+
+        if (m_acceptor.is_open())
+            m_acceptor.close();
+
+        m_running = false;
+    }
+
     const NetworkServerSettings& NetworkServer::GetSettings() const noexcept {
         return m_settings;
     }
@@ -56,23 +65,26 @@ namespace Merrie {
         return m_endpoint;
     }
 
+    bool NetworkServer::IsRunning() const noexcept {
+        return true;
+    }
+
     void NetworkServer::StartAccept() {
         std::shared_ptr<NetworkConnection> networkConnection = CreateNetworkConnection(m_ioContext);
         tcp::socket& socket = networkConnection->GetSocket();
 
         m_acceptor.async_accept(socket, [this, networkConnection = std::move(networkConnection)](const boost::system::error_code& error) mutable {
-            // todo handle error
-
-            if (error) {
-                return;
-            }
-
-            HandleNewConnection(std::move(networkConnection));
+            HandleNewConnection(error, std::move(networkConnection));
             StartAccept();
         });
     }
 
-    void NetworkServer::HandleNewConnection(std::shared_ptr<NetworkConnection> connection) {
+    void NetworkServer::HandleNewConnection(const boost::system::error_code& error, std::shared_ptr<NetworkConnection> connection) {
+        // todo handle error
+        if (error) {
+            return;
+        }
+
         M_LOG_TRACE_THIS("Connection: " << connection->GetSocket().remote_endpoint());
 
         std::scoped_lock lock(m_connectionsMutex);
@@ -85,5 +97,9 @@ namespace Merrie {
 
     tcp::socket& NetworkConnection::GetSocket() {
         return m_socket;
+    }
+
+    bool NetworkConnection::IsValid() {
+        return m_socket.is_open();
     }
 }

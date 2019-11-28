@@ -46,6 +46,8 @@ namespace Merrie {
 
             explicit NetworkConnection(boost::asio::io_context& ioContext);
 
+            virtual bool IsValid();
+
         protected: // Friend methods
             tcp::socket& GetSocket();
 
@@ -75,12 +77,17 @@ namespace Merrie {
             /**
              * Binds the server to the configured IP and port, starts listening and starts worker threads.
              */
-            void StartServer();
+            void Start();
 
             /**
              * Blocks the current thread untill all of this server's network threads exit.
              */
             void Join();
+
+            /**
+             * Stops the servers worker threads and cleans up the socket.
+             */
+            void Stop();
 
             /**
              * Gets the setting of this NetworkServer
@@ -92,6 +99,11 @@ namespace Merrie {
              */
             [[nodiscard]] const tcp::endpoint& GetEndpoint() const noexcept;
 
+            /**
+             * Indicates whether or not this server is running properly.
+             */
+            [[nodiscard]] bool IsRunning() const noexcept;
+
         protected: // Protected methods
             virtual std::shared_ptr<NetworkConnection> CreateNetworkConnection(boost::asio::io_context& context) = 0;
 
@@ -100,12 +112,13 @@ namespace Merrie {
         private: // Private methods
             void StartAccept();
 
-            void HandleNewConnection(std::shared_ptr<NetworkConnection> connection);
+            void HandleNewConnection(const boost::system::error_code& error, std::shared_ptr<NetworkConnection> connection);
 
         private: // Private fields
             const NetworkServerSettings m_settings;
             const tcp::endpoint m_endpoint;
 
+            bool m_running = false;
             boost::asio::io_context m_ioContext{};
             std::unique_ptr<boost::asio::io_context::work> m_work;
             tcp::acceptor m_acceptor;

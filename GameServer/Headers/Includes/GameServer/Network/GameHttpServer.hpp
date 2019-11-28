@@ -7,8 +7,11 @@
 
 namespace Merrie {
 
-    class GameHttpServer : public HttpServer
-    {
+    /*
+     * TODO Docs
+     */
+
+    class GameHttpServer : public HttpServer {
         public:
             NON_COPYABLE(GameHttpServer);
             NON_MOVEABLE(GameHttpServer);
@@ -16,12 +19,16 @@ namespace Merrie {
             GameHttpServer(GameServer* gameServer, HttpServerSettings settings);
 
         protected:
-            void HandleRequest(std::shared_ptr<HttpConnection> connection, http::request<http::string_body>& request, http::response<http::string_body>& response) override;
+            void HandleRequest(std::shared_ptr<HttpConnection> connection) override;
+
+        private: // Private methods
+            void HandleEnginePacket(std::shared_ptr<HttpConnection> connection, const DecodedUrl& url);
 
         private: // Private fields
             GameServer* m_gameServer;
     };
 
+
 }
 
-#endif //MERRIE_GAMESERVER_HEADERS_GAMESERVER_NETWORK_GAMEHTTPSERVER_HPP
+#endif //MERRIE_GAMESERVER_HEADERS_GAMESERVER_NETWORK_PACKET_HANDLERS_HPP

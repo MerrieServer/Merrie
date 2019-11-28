@@ -1,8 +1,10 @@
 # Create library
 add_library(Merrie_GameServer STATIC
         Network/GameHttpServer.cpp
+        Network/Packets.cpp
         GameServer.cpp
         Main.cpp
+        Player.cpp
 )
 
 # Find dependencies

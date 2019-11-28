@@ -62,4 +62,8 @@ if (MERRIE_USE_OPENSSL)
     endif()
 endif()
 
+# Nlohmann Json
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(Merrie_Commons_Headers INTERFACE nlohmann_json nlohmann_json::nlohmann_json)
+
 add_library(Merrie::Commons::Headers ALIAS Merrie_Commons_Headers)

@@ -16,6 +16,8 @@
 #endif
 
 namespace Merrie {
+    using namespace std::string_literals;
+
     // ================================================================================
     // = Copy & Move semantics                                                        =
     // ================================================================================
@@ -55,6 +57,21 @@ namespace Merrie {
     #define TRIVIALLY_MOVEABLE(NAME)                             \
         NAME(NAME&& rhs) noexcept = default;                     \
         NAME& operator=(NAME&& rhs) noexcept = default;
+
+    // ================================================================================
+    // = Initializers                                                                 =
+    // ================================================================================
+    #define M_INITIALIZER(functionName)                                                                                   \
+        static_assert(noexcept(functionName()), "M_INITIALIZER function must be explicitly marked as noexcept");          \
+                                                                                                                          \
+        class functionName##_initializer {                                                                                \
+            public:                                                                                                       \
+                inline functionName##_initializer() noexcept {                                                            \
+                    functionName();                                                                                       \
+                }                                                                                                         \
+        };                                                                                                                \
+                                                                                                                          \
+        static const functionName##_initializer g_##functionName##_initializer;                                           \
 
     // ================================================================================
     // = Simple exceptions                                                            =
@@ -104,6 +121,13 @@ namespace Merrie {
     M_DECLARE_EXCEPTION(AssertionError);
 
     /**
+     * Fails with AssertionError and the specified message
+     */
+    [[noreturn]] inline void M_FAIL(std::string message) {
+        throw Merrie::AssertionError(std::move(message));
+    }
+
+    /**
      * \def M_ASSERT(condition, message)
      *
      * If M_ASSERTIONS_DISABLED is specified this macro does nothing.
@@ -115,7 +139,7 @@ namespace Merrie {
      * No side-effects expression should be specified as condition since it may never be evaluated if the assertions are disabled
      */
     #ifdef M_ASSERTIONS_ENABLED
-    #   define M_ASSERT(condition, message) do { if (!(condition)) throw Merrie::AssertionError((message)); } while(0)
+    #   define M_ASSERT(condition, message) do { if (!(condition)) M_FAIL(message); } while(0)
     #else
     #   define M_ASSERT(condition, message) do {} while(0)
     #endif

@@ -10,7 +10,7 @@ option(MERRIE_COMPILE_GAME_SERVER            "Should the gameserver be compiled?
 option(MERRIE_COMPILE_GAME_TOOLS             "Should the game tools be compiled?"                    ON)
 
 # Global properties
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 # Compiler flags
 # gcc
