@@ -7,8 +7,8 @@ namespace Merrie {
         return c_randomDevice;
     }
 
-    std::mt19937& GetCommonMt19937() {
-        static std::mt19937 c_mt19937(GetCommonRandomDevice()());
+    std::mt19937_64& GetCommonMt19937() {
+        static std::mt19937_64 c_mt19937(GetCommonRandomDevice()());
         return c_mt19937;
     }
 }
