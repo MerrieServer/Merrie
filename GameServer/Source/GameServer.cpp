@@ -35,6 +35,7 @@ namespace Merrie {
         m_running = true;
         m_gameHttpServer->Start();
         m_ticker->ResetAll();
+        m_ticker->DoInMainThread(std::bind(&GameServer::Tick, this), true);
     }
 
     void GameServer::Stop() {
@@ -62,6 +63,33 @@ namespace Merrie {
         // create new one if it does not exist
         std::unique_lock lockUnique(m_playersMutex);
         auto[iterator, _] = m_players.try_emplace(aid, std::make_shared<Player>(aid));
+        M_LOG_INFO(iterator->second->GetLogger()) << "Joined the game";
         return iterator->second;
+    }
+
+    void GameServer::Tick() {
+        if (IsPast(m_oneSecondTasks)) {
+            {
+                std::unique_lock lock(m_playersMutex);
+
+                // remove inactive players
+                for (auto iterator = m_players.cbegin(); iterator != m_players.cend();) {
+                    const std::shared_ptr<Player>& player = iterator->second;
+                    std::unique_lock playerLock(player->GetDataMutex());
+
+                    if (IsPast(player->GetTimeout())) {
+                        player->SetInitLevel(InitLevel::None);
+                        M_LOG_INFO(player->GetLogger()) << "Left the game";
+                        playerLock.unlock();
+
+                        m_players.erase(iterator++);
+                    } else {
+                        ++iterator;
+                    }
+                }
+            }
+
+            m_oneSecondTasks = PointInFuture<std::chrono::seconds>(1);
+        }
     }
 }

@@ -2,8 +2,8 @@
 
 #include <Commons/Containers.hpp>
 #include <Commons/Ticker.hpp>
+#include <GameServer/Player.hpp>
 #include <GameServer/Network/Packets.hpp>
-
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 #include <nlohmann/json.hpp>
@@ -143,7 +143,7 @@ namespace Merrie {
             return;
         }
 
-        // TODO: Authentication
+        // TODO: Authentication (async!)
         // TODO: Validate via cookies
 
         IncomingPacket in = {
@@ -154,18 +154,22 @@ namespace Merrie {
         OutgoingPacket out;
         const HandleResult asyncResult = _ProcessPacketHandlerChain(GetRegisteredAsyncPacketHandlers(), in, out);
 
+        {
+            std::shared_lock lock(in.Player->GetDataMutex());
+            in.Player->SetTimeout();
+        }
+
         if (asyncResult == HandleResult::StopHandling) {
-            connection->GetResponse().body() = _CreateSimpleStopPacket("StopHandling returned");
+            connection->GetResponse().body() = _CreateSimpleStopPacket("StopHandling was returned");
             connection->SendResponse();
             return;
-            // todo: proper kick
         }
 
         m_gameServer->GetTicker()->DoInMainThread([asyncResult, in = std::move(in), out = std::move(out), connection = std::move(connection)](const std::shared_ptr<Task>&) mutable {
             const HandleResult syncResult = _ProcessPacketHandlerChain(GetRegisteredSyncPacketHandlers(), in, out);
 
             if (syncResult == HandleResult::StopHandling) {
-                connection->GetResponse().body() = _CreateSimpleStopPacket("StopHandling returned");
+                connection->GetResponse().body() = _CreateSimpleStopPacket("StopHandling was returned");
                 connection->SendResponse();
                 return;
             }

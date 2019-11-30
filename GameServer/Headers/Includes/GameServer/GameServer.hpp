@@ -3,6 +3,7 @@
 
 #include <Commons/Commons.hpp>
 #include <Commons/Logging.hpp>
+#include <Commons/Time.hpp>
 #include <shared_mutex>
 
 namespace Merrie {
@@ -32,12 +33,17 @@ namespace Merrie {
             [[nodiscard]] const std::unique_ptr<Ticker>& GetTicker() const noexcept;
 
             std::shared_ptr<Player> GetPlayer(uint64_t aid);
+
+        private:
+            void Tick();
+
         private:
             bool m_running;
             std::unique_ptr<GameHttpServer> m_gameHttpServer;
             std::unique_ptr<Ticker> m_ticker;
-            std::shared_mutex m_playersMutex;
-            std::map<uint64_t, std::shared_ptr<Player>> m_players;
+            std::shared_mutex m_playersMutex{};
+            std::map<uint64_t, std::shared_ptr<Player>> m_players{};
+            DefaultClock::time_point m_oneSecondTasks{};
 
             M_DECLARE_LOGGER;
     };
