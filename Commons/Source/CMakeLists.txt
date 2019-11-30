@@ -5,6 +5,7 @@ add_library(Merrie_Commons STATIC
         Network/Http.cpp
         Network/NetworkServer.cpp
         Logging.cpp
+        Random.cpp
         Ticker.cpp
 )
 
