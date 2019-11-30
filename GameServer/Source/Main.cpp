@@ -7,11 +7,11 @@ namespace Merrie {
     int ApplicationMain(int, char* []) {
         LoggingSystem loggingSystem;
 
-        GameServer gameServer;
-        gameServer.Start();
+        std::unique_ptr<GameServer> gameServer = std::make_unique<GameServer>();
+        gameServer->Start();
 
-        while (gameServer.IsRunning()) {
-            gameServer.GetTicker()->DoTick();
+        while (gameServer->IsRunning()) {
+            gameServer->GetTicker()->DoTick();
         }
 
         return 0;
