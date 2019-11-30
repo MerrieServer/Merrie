@@ -6,6 +6,7 @@
 #include "Network.hpp"
 
 #include <boost/asio.hpp>
+#include <optional>
 
 namespace Merrie {
     class NetworkWorker; // Forward declaration
@@ -55,6 +56,10 @@ namespace Merrie {
              */
             virtual bool IsValid();
 
+            /**
+             * Get remote endpoint of this connection, if it exists
+             */
+            [[nodiscard]] const std::optional<tcp::endpoint>& GetRemoteEndpoint() const;
         protected: // Friend methods
             tcp::socket& GetSocket();
 
@@ -62,6 +67,7 @@ namespace Merrie {
 
         private: // Private fields
             tcp::socket m_socket;
+            std::optional<tcp::endpoint> m_remoteEndpoint;
     };
 
     /**

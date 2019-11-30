@@ -86,7 +86,8 @@ namespace Merrie {
             return;
         }
 
-        M_LOG_TRACE_THIS("New connection has connected: " << connection->GetSocket().remote_endpoint());
+        connection->m_remoteEndpoint = connection->GetSocket().remote_endpoint();
+        M_LOG_TRACE_THIS("New connection has connected: " << connection->GetRemoteEndpoint().value());
 
         std::scoped_lock lock(m_connectionsMutex);
         RemoveIf(m_connections, [this](const std::shared_ptr<NetworkConnection>& connection) {
@@ -99,7 +100,14 @@ namespace Merrie {
                 connection->GetSocket().close(ignored);
             }
 
-            M_LOG_TRACE_THIS("Connection has been cleaned up: " << connection->GetSocket().remote_endpoint());
+            #ifdef M_ENABLE_TRACE
+            const auto remoteEndpoint = connection->GetRemoteEndpoint();
+            if (remoteEndpoint)
+                M_LOG_TRACE_THIS("Connection has been cleaned up: " << remoteEndpoint.value());
+            else
+                M_LOG_TRACE_THIS("An unknown connection with no remote endpoint associated has been cleaned up: ");
+            #endif
+
             return true;
         });
 
@@ -116,5 +124,9 @@ namespace Merrie {
 
     bool NetworkConnection::IsValid() {
         return m_socket.is_open();
+    }
+
+    const std::optional<tcp::endpoint>& NetworkConnection::GetRemoteEndpoint() const {
+        return m_remoteEndpoint;
     }
 }
