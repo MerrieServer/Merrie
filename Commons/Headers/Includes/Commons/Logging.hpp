@@ -70,13 +70,13 @@
  * This can be placed only inside a class declaration.
  * The name of the logger will be deduced from the class name.
  */
-#define M_DECLARE_LOGGER               Merrie::Logger m_logger = Merrie::LoggingSystem::InitLoggerFromType(boost::typeindex::type_id_with_cvr<decltype(*this)>().pretty_name())
+#define M_DECLARE_LOGGER               mutable Merrie::Logger m_logger = Merrie::LoggingSystem::InitLoggerFromType(boost::typeindex::type_id_with_cvr<decltype(*this)>().pretty_name())
 
 /**
  * Declares a new logger with the given name as a field called m_logger.
  * This can be placed only inside a class declaration.
  */
-#define M_DECLARE_LOGGER_EX(name)      Merrie::Logger m_logger = Merrie::LoggingSystem::InitLogger(name)
+#define M_DECLARE_LOGGER_EX(name)      mutable Merrie::Logger m_logger = Merrie::LoggingSystem::InitLogger(name)
 
 /**
  * Creates a stream for writing a log message to a logger with the given severity.
