@@ -4,12 +4,19 @@
 #include <Commons/Commons.hpp>
 #include <Commons/Logging.hpp>
 #include <Commons/Time.hpp>
+#include <Commons/Network/Http.hpp>
 #include <shared_mutex>
 
 namespace Merrie {
     class Ticker; // Commons/Ticker.hpp
     class GameHttpServer; // Network/GameHttpServer.hpp
     class Player; // Player.hpp
+
+    struct GameServerSettings {
+        HttpServerSettings HttpServerSettingsValue;
+        unsigned int Tps;
+        std::vector<std::string> LogFilters;
+    };
 
     /*
      * TODO Docs
@@ -20,13 +27,15 @@ namespace Merrie {
             NON_COPYABLE(GameServer);
             NON_MOVEABLE(GameServer);
 
-            GameServer();
+            GameServer(GameServerSettings settings);
 
             virtual ~GameServer();
         public:
             void Start();
 
             void Stop();
+
+            [[nodiscard]] const GameServerSettings& GetSettings() const noexcept;
 
             [[nodiscard]] bool IsRunning() const noexcept;
 
@@ -38,7 +47,8 @@ namespace Merrie {
             void Tick();
 
         private:
-            bool m_running;
+            const GameServerSettings m_settings;
+            bool m_running = false;
             std::unique_ptr<GameHttpServer> m_gameHttpServer;
             std::unique_ptr<Ticker> m_ticker;
             std::shared_mutex m_playersMutex{};

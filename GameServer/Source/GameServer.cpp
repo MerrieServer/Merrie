@@ -6,18 +6,8 @@
 #include <GameServer/Network/GameHttpServer.hpp>
 
 namespace Merrie {
-    GameServer::GameServer() : m_running(false) {
-        HttpServerSettings settings = {
-                {
-                        "127.0.0.1", 81, 8
-                },
-                true,
-                15,
-                15,
-                5000,
-        }; // todo
-
-        m_gameHttpServer = std::make_unique<GameHttpServer>(this, std::move(settings));
+    GameServer::GameServer(GameServerSettings settings) : m_settings(std::move(settings)) {
+        m_gameHttpServer = std::make_unique<GameHttpServer>(this, m_settings.HttpServerSettingsValue);
         m_ticker = std::make_unique<Ticker>();
     }
 

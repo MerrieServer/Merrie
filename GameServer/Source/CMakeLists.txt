@@ -8,10 +8,14 @@ add_library(Merrie_GameServer STATIC
 )
 
 # Find dependencies
+find_package(yaml-cpp CONFIG REQUIRED)
+
 target_link_libraries(Merrie_GameServer
         PUBLIC
             Merrie::GameServer::Headers
             Merrie::Commons
+        PRIVATE
+            yaml-cpp
 )
 
 # Add alias
