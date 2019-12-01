@@ -136,7 +136,7 @@ namespace Merrie {
     }
 
     HttpServer::HttpServer(HttpServerSettings settings)
-            : NetworkServer(settings.NetworkServerSettings),
+            : NetworkServer(settings.NetworkServerSettingsValue),
               m_settings(std::move(settings)),
               m_keepAliveHeader("timeout=" + std::to_string(settings.KeepAliveTimeout) + ", max=" + std::to_string(settings.KeepAliveMax)) {
     }

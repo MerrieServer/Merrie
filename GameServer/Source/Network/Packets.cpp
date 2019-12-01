@@ -71,7 +71,7 @@ namespace Merrie {
             });
 
 
-            RegisterPacketHandler(RunMode::Sync, {"init"}, []((const std::shared_ptr<Player>& player, const IncomingPacket& in, OutgoingPacket& out) -> HandleResult {
+            RegisterPacketHandler(RunMode::Sync, {"init"}, [](const std::shared_ptr<Player>& player, const IncomingPacket& in, OutgoingPacket& out) -> HandleResult {
                 std::unique_lock lock(player->GetDataMutex());
 
                 // 'init' action handler
@@ -259,7 +259,7 @@ namespace Merrie {
             });
 
             // Finishing up tasks
-            RegisterPacketHandler(RunMode::Sync, {}, [](const std::shared_ptr<Player>&, const IncomingPacket&, OutgoingPacket& out) -> HandleResult {
+            RegisterPacketHandler(RunMode::Sync, {}, [](const std::shared_ptr<Player>& player, const IncomingPacket&, OutgoingPacket& out) -> HandleResult {
                 std::shared_lock lock(player->GetDataMutex());
 
                 if (out.GetJson().find("e") == out.GetJson().end()) {
