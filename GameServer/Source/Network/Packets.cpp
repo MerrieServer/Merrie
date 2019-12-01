@@ -9,8 +9,7 @@
 
 namespace Merrie {
 
-    OutgoingPacket::OutgoingPacket() {
-    }
+    OutgoingPacket::OutgoingPacket() = default;
 
     nlohmann::json& OutgoingPacket::GetJson() noexcept {
         return m_json;
@@ -47,22 +46,22 @@ namespace Merrie {
 
     namespace {
         void RegisterStandardHandlers() noexcept {
-            RegisterPacketHandler(RunMode::Async, {}, [](const IncomingPacket& in, OutgoingPacket&) -> HandleResult {
+            RegisterPacketHandler(RunMode::Async, {}, [](const std::shared_ptr<Player>& player, const IncomingPacket& in, OutgoingPacket&) -> HandleResult {
                 // browser_token and initlvl check task
-                std::scoped_lock lock(in.Player->GetDataMutex());
+                std::scoped_lock lock(player->GetDataMutex());
 
                 // check initlvl
-                if (in.Action != "init" && in.Player->GetInitLevel() != InitLevel::FullyInitialized) {
+                if (in.Action != "init" && player->GetInitLevel() != InitLevel::FullyInitialized) {
                     return HandleResult::StopHandling;
                 }
 
                 // check browser token
-                if (in.Player->GetBrowserToken() != 0) {
+                if (player->GetBrowserToken() != 0) {
                     // we don't care about browser_token if its the first init request
                     if (!(in.Action == "init" && FindInMap(in.Parameters, "initlvl"s) == "1")) {
                         const auto browserTokenParam = FindInMap(in.Parameters, "browser_token"s);
                         uint32_t browserToken;
-                        if (!browserTokenParam || !boost::conversion::try_lexical_convert(browserTokenParam.value(), browserToken) || browserToken != in.Player->GetBrowserToken()) {
+                        if (!browserTokenParam || !boost::conversion::try_lexical_convert(browserTokenParam.value(), browserToken) || browserToken != player->GetBrowserToken()) {
                             return HandleResult::StopHandling;
                         }
                     }
@@ -72,8 +71,8 @@ namespace Merrie {
             });
 
 
-            RegisterPacketHandler(RunMode::Sync, {"init"}, [](const IncomingPacket& in, OutgoingPacket& out) -> HandleResult {
-                std::unique_lock lock(in.Player->GetDataMutex());
+            RegisterPacketHandler(RunMode::Sync, {"init"}, []((const std::shared_ptr<Player>& player, const IncomingPacket& in, OutgoingPacket& out) -> HandleResult {
+                std::unique_lock lock(player->GetDataMutex());
 
                 // 'init' action handler
                 const auto initLvl = FindInMap(in.Parameters, "initlvl"s);
@@ -91,7 +90,7 @@ namespace Merrie {
                     return HandleResult::StopHandling;
                 }
 
-                const auto nextInitLevel = static_cast<InitLevel>(static_cast<int>(in.Player->GetInitLevel()) + 1);
+                const auto nextInitLevel = static_cast<InitLevel>(static_cast<int>(player->GetInitLevel()) + 1);
 
                 // you can  always request initlvl 1
                 if (requestedInitLevel != InitLevel::Level1 && requestedInitLevel != nextInitLevel) {
@@ -101,10 +100,10 @@ namespace Merrie {
                 switch (requestedInitLevel) {
                     case InitLevel::Level1: {
                         static RandomNumberGenerator<uint32_t> c_browserTokenGenerator = CreateRandomNumberGenerator<uint32_t>();
-                        in.Player->SetBrowserToken(c_browserTokenGenerator());
+                        player->SetBrowserToken(c_browserTokenGenerator());
 
                         out.GetJson() = {
-                                {"browser_token", in.Player->GetBrowserToken()},
+                                {"browser_token", player->GetBrowserToken()},
                                 {"qtrack",        {"*"}},
                                 {"priv_world",    0},
                                 {"wanted_show",   1},
@@ -112,7 +111,7 @@ namespace Merrie {
                                 {"worldname",     "Merrie"},
                                 {"h",
                                                   {
-                                                   {"id", in.Player->GetAid()},
+                                                   {"id", player->GetAid()},
                                                           {"blockade", 0},
                                                           {"uprawnienia", 0},
                                                           {"ap", 0},
@@ -132,7 +131,7 @@ namespace Merrie {
                                                           {"mails_all", 0},
                                                           {"mails_last", ""},
                                                           {"mpath", "http://classic.margonem.pl/"},
-                                                          {"nick", in.Player->GetCharacterName()},
+                                                          {"nick", player->GetCharacterName()},
                                                           {"opt", 0},
                                                           {"prof", "w"},
                                                           {"ttl_value", 0},
@@ -237,7 +236,7 @@ namespace Merrie {
                                                                 {"k", 3},
                                                                 {"n", "System"},
                                                                 {"i", ""},
-                                                                {"nd", in.Player->GetCharacterName()},
+                                                                {"nd", player->GetCharacterName()},
                                                                 {"t", "Siemano kolano"},
                                                                 {"s", "sys_info"},
                                                                 {"ts", static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(DefaultClock::now().time_since_epoch()).count()) /
@@ -254,20 +253,20 @@ namespace Merrie {
                 }
 
 
-                in.Player->SetInitLevel(requestedInitLevel);
+                player->SetInitLevel(requestedInitLevel);
 
                 return HandleResult::ContinueHandling;
             });
 
             // Finishing up tasks
-            RegisterPacketHandler(RunMode::Sync, {}, [](const IncomingPacket& in, OutgoingPacket& out) -> HandleResult {
-                std::shared_lock lock(in.Player->GetDataMutex());
+            RegisterPacketHandler(RunMode::Sync, {}, [](const std::shared_ptr<Player>&, const IncomingPacket&, OutgoingPacket& out) -> HandleResult {
+                std::shared_lock lock(player->GetDataMutex());
 
                 if (out.GetJson().find("e") == out.GetJson().end()) {
                     out.GetJson()["e"] = "ok";
                 }
 
-                if (in.Player->IsInitialized()) {
+                if (player->IsInitialized()) {
                     out.GetJson()["ev"] = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) / 1000.0;
                 }
 
@@ -276,6 +275,6 @@ namespace Merrie {
 
         }
 
-        M_INITIALIZER(RegisterStandardHandlers)
+        M_INITIALIZER(RegisterStandardHandlers);
     }
 }

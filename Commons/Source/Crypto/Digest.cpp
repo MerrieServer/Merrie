@@ -18,7 +18,7 @@ namespace Merrie {
     std::string DigestToBigInt(const std::vector<unsigned char>& digest) {
         const size_t size = digest.size();
         const unsigned char highestByte = digest[0];
-        const bool negative = static_cast<const bool>(highestByte & 0b1000'0000U);
+        const bool negative = static_cast<bool>(highestByte & 0b1000'0000U);
 
         std::string string;
         if (negative) {

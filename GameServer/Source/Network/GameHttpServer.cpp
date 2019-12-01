@@ -97,7 +97,7 @@ namespace Merrie {
                 }
             }
 
-            switch (data->Handler(in, out)) {
+            switch (data->Handler(in.Player_, in, out)) {
                 case HandleResult::ContinueHandling:
                     if (!data->ActionFilters.empty())
                         result = HandleResult::ContinueHandling;
@@ -155,8 +155,8 @@ namespace Merrie {
         const HandleResult asyncResult = _ProcessPacketHandlerChain(GetRegisteredAsyncPacketHandlers(), in, out);
 
         {
-            std::shared_lock lock(in.Player->GetDataMutex());
-            in.Player->SetTimeout();
+            std::shared_lock lock(in.Player_->GetDataMutex());
+            in.Player_->SetTimeout();
         }
 
         if (asyncResult == HandleResult::StopHandling) {

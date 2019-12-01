@@ -56,7 +56,7 @@ namespace Merrie {
         /**
          * Settings for the underlying NetworkServer
          */
-        NetworkServerSettings NetworkServerSettings;
+        NetworkServerSettings NetworkServerSettingsValue;
 
         /**
          * Should KeepAlive be enabled.

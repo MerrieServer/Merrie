@@ -20,8 +20,8 @@
 #endif
 
 namespace Merrie {
-    BOOST_LOG_ATTRIBUTE_KEYWORD(g_nameAttr, "Name", std::string);
-    BOOST_LOG_ATTRIBUTE_KEYWORD(g_severityAttr, "Severity", LoggingSeverity);
+    BOOST_LOG_ATTRIBUTE_KEYWORD(g_nameAttr, "Name", std::string)
+    BOOST_LOG_ATTRIBUTE_KEYWORD(g_severityAttr, "Severity", LoggingSeverity)
 
     namespace logging = boost::log;
     namespace sinks = logging::sinks;
@@ -63,6 +63,8 @@ namespace Merrie {
                 return g_severityValues[static_cast<size_t>(level.get())];
             else
                 return g_rawSeverityValues[static_cast<size_t>(level.get())];
+            #else
+            (void)colored;
             #endif
 
             return g_rawSeverityValues[static_cast<size_t>(level.get())];

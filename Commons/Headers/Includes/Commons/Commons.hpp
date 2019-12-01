@@ -7,7 +7,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 #include <cstdint>
 
@@ -29,7 +28,7 @@ namespace Merrie {
      */
     #define NON_COPYABLE(NAME)                                  \
         NAME(const NAME& rhs) = delete;                         \
-        NAME& operator=(const NAME& rhs) = delete;
+        NAME& operator=(const NAME& rhs) = delete
 
     /**
      * Declares the given type as non-moveable by explicitly deleting the move constructor and move assignment operator.
@@ -38,7 +37,7 @@ namespace Merrie {
      */
     #define NON_MOVEABLE(NAME)                                  \
         NAME(NAME&& rhs) = delete;                              \
-        NAME& operator=(NAME&& rhs) = delete;
+        NAME& operator=(NAME&& rhs) = delete
 
     /**
      * Declares the given type is trivially copyable and the compiler must generate the copy constructor and copy assignment operator.
@@ -47,7 +46,7 @@ namespace Merrie {
      */
     #define TRIVIALLY_COPYABLE(NAME)                             \
         NAME(const NAME& rhs) = default;                         \
-        NAME& operator=(const NAME& rhs) = default;
+        NAME& operator=(const NAME& rhs) = default
 
     /**
      * Declares the given type is trivially moveable and the compiler must generate the move constructor and move assignment operator.
@@ -56,7 +55,7 @@ namespace Merrie {
      */
     #define TRIVIALLY_MOVEABLE(NAME)                             \
         NAME(NAME&& rhs) noexcept = default;                     \
-        NAME& operator=(NAME&& rhs) noexcept = default;
+        NAME& operator=(NAME&& rhs) noexcept = default
 
     // ================================================================================
     // = Initializers                                                                 =
@@ -71,7 +70,7 @@ namespace Merrie {
                 }                                                                                                         \
         };                                                                                                                \
                                                                                                                           \
-        static const functionName##_initializer g_##functionName##_initializer;                                           \
+        static const functionName##_initializer g_##functionName##_initializer
 
     // ================================================================================
     // = Simple exceptions                                                            =
@@ -98,7 +97,7 @@ namespace Merrie {
         class NAME : public BASE_CLASS {                                                                \
         public:                                                                                         \
             explicit NAME(std::string what) noexcept : BASE_CLASS(std::move(what)) {}                   \
-        };
+        }
 
     /**
      * Declares a new exception with the given name and BaseException as a base class

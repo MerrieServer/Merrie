@@ -93,7 +93,7 @@ namespace Merrie {
              * @param type vector with data
              */
             void Update(const std::vector<uint8_t>& type) {
-                Update(static_cast<void*>(type.data()), type.size());
+                Update(static_cast<const void*>(type.data()), type.size());
             }
 
             /**

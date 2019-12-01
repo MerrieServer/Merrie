@@ -3,6 +3,7 @@
 
 #include <Commons/Commons.hpp>
 #include <condition_variable>
+#include <thread>
 #include <mutex>
 
 namespace Merrie {

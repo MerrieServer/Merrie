@@ -26,7 +26,7 @@ namespace Merrie {
     };
 
     struct IncomingPacket {
-        std::shared_ptr<Player> Player;
+        std::shared_ptr<Player> Player_;
         std::string Action;
         std::map<std::string, std::string> Parameters;
     };
@@ -37,7 +37,7 @@ namespace Merrie {
             StopHandling, // handling, but handling should stop immediatly with a fail
     };
 
-    using PacketHandler = std::function<HandleResult(const IncomingPacket& in, OutgoingPacket& out)>;
+    using PacketHandler = std::function<HandleResult(const std::shared_ptr<Player>& player, const IncomingPacket& in, OutgoingPacket& out)>;
 
     enum class RunMode {
             Sync,
