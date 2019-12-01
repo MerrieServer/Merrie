@@ -64,6 +64,16 @@ namespace Merrie {
                 r += "</p>";
             }
 
+            r += "<br><br><h4>Request headers: </h4>";
+
+            for (auto const& header : connection->GetRequest().base()) {
+                r += "<p>";
+                r.append(header.name_string().data(), header.name_string().size());
+                r += "<b> = </b>";
+                r.append(header.value().data(), header.value().size());
+                r += "</p>";
+            }
+
             connection->GetResponse().body() = r;
             connection->SendResponse();
             return;
